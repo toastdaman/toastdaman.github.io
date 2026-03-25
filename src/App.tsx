@@ -96,9 +96,10 @@ export default function App() {
       
       // Base gradient (toasted edges)
       const gradient = ctx.createRadialGradient(512, 512, 100, 512, 512, 600);
-      gradient.addColorStop(0, '#F5D093'); // Soft inner bread
-      gradient.addColorStop(0.7, '#E5B874'); // Golden mid
-      gradient.addColorStop(1, '#C2853D'); // Darker toasted edge
+      gradient.addColorStop(0, '#E5B874'); // Golden inner bread
+      gradient.addColorStop(0.4, '#C2853D'); // Darker mid
+      gradient.addColorStop(0.7, '#8B4513'); // Burnt brown edge
+      gradient.addColorStop(1, '#4A2311'); // Very dark burnt edge
       
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 1024, 1024);
@@ -118,10 +119,14 @@ export default function App() {
       };
 
       // Layered pores for organic spongy look
-      drawPores(1500, 4, 14, '#D4A359', 0.4); // Large soft pores
-      drawPores(6000, 2, 7, '#C2853D', 0.5);  // Medium dark pores
-      drawPores(20000, 0.5, 2.5, '#A66A28', 0.6); // Tiny dark specks
-      drawPores(5000, 1, 3, '#FFF4E0', 0.3); // Tiny light highlights
+      drawPores(1500, 4, 14, '#C2853D', 0.5); // Large soft pores
+      drawPores(6000, 2, 7, '#8B4513', 0.6);  // Medium dark pores
+      drawPores(20000, 0.5, 2.5, '#5C2E0B', 0.7); // Tiny dark specks
+      drawPores(5000, 1, 3, '#E5B874', 0.3); // Tiny light highlights
+      
+      // Add some burnt spots
+      drawPores(150, 10, 35, '#3A1808', 0.4); // Large burnt patches
+      drawPores(400, 5, 15, '#2A1005', 0.5); // Medium burnt patches
 
       ctx.globalAlpha = 1.0;
       const tex = new THREE.CanvasTexture(canvas);
@@ -182,28 +187,28 @@ export default function App() {
       const ctx = canvas.getContext('2d');
       if (!ctx) return null;
       
-      ctx.fillStyle = '#4A2A11';
+      ctx.fillStyle = '#2A1405';
       ctx.fillRect(0, 0, 512, 512);
       
       // Crust has a more directional, baked texture
-      ctx.globalAlpha = 0.3;
+      ctx.globalAlpha = 0.4;
       for (let i = 0; i < 10000; i++) {
         const x = Math.random() * 512;
         const y = Math.random() * 512;
         const w = Math.random() * 20 + 5;
         const h = Math.random() * 3 + 1;
         
-        ctx.fillStyle = Math.random() > 0.5 ? '#2A1405' : '#6E4A31';
+        ctx.fillStyle = Math.random() > 0.5 ? '#1A0A00' : '#4A2A11';
         ctx.fillRect(x, y, w, h);
       }
       
       // Add some baked spots/blisters
-      ctx.globalAlpha = 0.5;
+      ctx.globalAlpha = 0.6;
       for (let i = 0; i < 2000; i++) {
         const x = Math.random() * 512;
         const y = Math.random() * 512;
         const r = Math.random() * 4 + 1;
-        ctx.fillStyle = '#1A0A00';
+        ctx.fillStyle = '#0A0400';
         ctx.beginPath();
         ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
@@ -326,9 +331,11 @@ export default function App() {
       metalness: 0.1,
       clearcoat: 1.0,
       clearcoatRoughness: 0.0,
-      transmission: 0.3, // Slightly translucent
+      transmission: 0.7, // More translucent
       ior: 1.5,
       thickness: 0.5,
+      transparent: true,
+      opacity: 0.9,
     });
     const butterMesh = new THREE.Mesh(butterGeometry, butterMaterial);
     butterMesh.position.set(0.1, -0.1, 0.22); // Slightly offset on the front face
@@ -364,6 +371,55 @@ export default function App() {
     
     const toastGroup = new THREE.Group();
     toastGroup.add(toastMesh);
+    
+    // Add a point light to make the butter glisten
+    const butterLight = new THREE.PointLight('#FFF4E0', 0.8, 3);
+    butterLight.position.set(0.5, 0.5, 1.0);
+    toastGroup.add(butterLight);
+    
+    // Add steam particles
+    const steamCount = 30;
+    const steamGeometry = new THREE.BufferGeometry();
+    const steamPositions = new Float32Array(steamCount * 3);
+    const steamData: { speed: number, offset: number }[] = [];
+    
+    for (let i = 0; i < steamCount; i++) {
+      steamPositions[i * 3] = (Math.random() - 0.5) * 1.5; // x
+      steamPositions[i * 3 + 1] = Math.random() * 1.5;     // y
+      steamPositions[i * 3 + 2] = 0.2 + Math.random() * 0.5; // z
+      steamData.push({
+        speed: 0.005 + Math.random() * 0.01,
+        offset: Math.random() * Math.PI * 2
+      });
+    }
+    steamGeometry.setAttribute('position', new THREE.BufferAttribute(steamPositions, 3));
+    
+    // Create a soft steam texture programmatically
+    const steamCanvas = document.createElement('canvas');
+    steamCanvas.width = 64;
+    steamCanvas.height = 64;
+    const steamCtx = steamCanvas.getContext('2d');
+    if (steamCtx) {
+      const grad = steamCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+      grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      steamCtx.fillStyle = grad;
+      steamCtx.fillRect(0, 0, 64, 64);
+    }
+    const steamTex = new THREE.CanvasTexture(steamCanvas);
+    
+    const steamMaterial = new THREE.PointsMaterial({
+      size: 0.6,
+      map: steamTex,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      opacity: 0.6
+    });
+    
+    const steamParticles = new THREE.Points(steamGeometry, steamMaterial);
+    toastGroup.add(steamParticles);
+    
     scene.add(toastGroup);
 
     // ==========================================
@@ -599,6 +655,21 @@ export default function App() {
       }
       sparkles.instanceMatrix.needsUpdate = true;
 
+      // Animate steam
+      const positions = steamGeometry.attributes.position.array as Float32Array;
+      for (let i = 0; i < steamCount; i++) {
+        const idx = i * 3;
+        positions[idx + 1] += steamData[i].speed; // move up
+        positions[idx] += Math.sin(elapsedTime + steamData[i].offset) * 0.002; // waft side to side
+        
+        // Reset if too high
+        if (positions[idx + 1] > 2.5) {
+          positions[idx + 1] = 0;
+          positions[idx] = (Math.random() - 0.5) * 1.5;
+        }
+      }
+      steamGeometry.attributes.position.needsUpdate = true;
+
       controls.update();
       renderer.render(scene, camera);
       animationFrameId = window.requestAnimationFrame(tick);
@@ -640,6 +711,9 @@ export default function App() {
       crumbMaterial.dispose();
       sparkleGeometry.dispose();
       sparkleMaterial.dispose();
+      steamGeometry.dispose();
+      steamMaterial.dispose();
+      steamTex.dispose();
       starsGeometry.dispose();
       starsMaterial.dispose();
       renderer.dispose();
