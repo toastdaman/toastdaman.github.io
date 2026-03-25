@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&family=Inter:wght@300;400;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+@keyframes razzleDazzle {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.razzle-bg {
+  background: linear-gradient(-45deg, #050510, #1a0b2e, #0b1021, #050510);
+  background-size: 400% 400%;
+  animation: razzleDazzle 25s ease infinite;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-color: #050510;
+  color: #EAE6DF;
+  font-family: "Inter", sans-serif;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M 8 12 C 4 12 4 6 10 6 C 13 6 16 8 16 8 C 16 8 19 6 22 6 C 28 6 28 12 24 12 L 26 24 C 26 26 24 28 22 28 L 10 28 C 8 28 6 26 6 24 Z" fill="%23E5B874" stroke="%23EAE6DF" stroke-width="2" stroke-linejoin="round"/></svg>') 16 16, auto;
+}
+
+/* Interactive elements get a buttered toast cursor */
+a, button, input, textarea, [role="button"], .cursor-pointer {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M 8 12 C 4 12 4 6 10 6 C 13 6 16 8 16 8 C 16 8 19 6 22 6 C 28 6 28 12 24 12 L 26 24 C 26 26 24 28 22 28 L 10 28 C 8 28 6 26 6 24 Z" fill="%23FFDF40" stroke="%23EAE6DF" stroke-width="2" stroke-linejoin="round"/></svg>') 16 16, pointer !important;
+}
+
+/* Custom selection color */
+::selection {
+  background: #EAE6DF;
+  color: #050510;
+}
+
+/* Hide scrollbar for cleaner look but keep functionality */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #050510;
+}
+::-webkit-scrollbar-thumb {
+  background: #EAE6DF;
+}
