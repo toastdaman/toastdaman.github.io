@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import LoadingScreen from './LoadingScreen';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { gsap } from 'gsap';
@@ -10,6 +11,12 @@ gsap.registerPlugin(ScrollTrigger);
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [sceneReady, setSceneReady] = useState(false);
+  const [showLoading, setShowLoading] = useState(true);
+
+  const handleLoadingComplete = useCallback(() => {
+    setShowLoading(false);
+  }, []);
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
@@ -677,6 +684,11 @@ export default function App() {
 
     tick();
 
+    // Signal that the scene is ready after a short delay for first frame
+    requestAnimationFrame(() => {
+      setSceneReady(true);
+    });
+
     // ==========================================
     // RESIZE HANDLING
     // ==========================================
@@ -723,6 +735,10 @@ export default function App() {
   }, []);
 
   return (
+    <>
+    {showLoading && (
+      <LoadingScreen isReady={sceneReady} onComplete={handleLoadingComplete} />
+    )}
     <div ref={containerRef} className="relative w-full text-[#EAE6DF] razzle-bg">
       {/* Fixed Three.js Canvas */}
       <canvas
@@ -864,5 +880,6 @@ export default function App() {
 
       </div>
     </div>
+    </>
   );
 }
